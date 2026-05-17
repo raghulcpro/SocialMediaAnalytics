@@ -3,29 +3,58 @@ import pandas as pd
 import plotly.express as px
 from textblob import TextBlob
 
-# -----------------------------
+# -----------------------------------
 # PAGE CONFIG
-# -----------------------------
+# -----------------------------------
 st.set_page_config(
     page_title="SocialPulse AI",
-    page_icon="📊",
+    page_icon="🚀",
     layout="wide"
 )
 
-# -----------------------------
-# TITLE
-# -----------------------------
-st.title("📊 SocialPulse AI Dashboard")
-st.markdown("AI-Powered Social Media Analytics Platform")
+# -----------------------------------
+# CUSTOM CSS
+# -----------------------------------
+st.markdown("""
+<style>
 
-# -----------------------------
+.main {
+    background-color: #0E1117;
+    color: white;
+}
+
+[data-testid="stMetric"] {
+    background-color: #1E1E1E;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 15px rgba(0,255,255,0.2);
+}
+
+h1, h2, h3 {
+    color: #00F5FF;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------------
+# SIDEBAR
+# -----------------------------------
+st.sidebar.title("📌 Navigation")
+
+page = st.sidebar.radio(
+    "Go To",
+    ["Dashboard", "Dataset", "Analytics"]
+)
+
+# -----------------------------------
 # LOAD DATA
-# -----------------------------
+# -----------------------------------
 df = pd.read_csv("tweets.csv")
 
-# -----------------------------
-# SENTIMENT ANALYSIS
-# -----------------------------
+# -----------------------------------
+# SENTIMENT FUNCTION
+# -----------------------------------
 def analyze_sentiment(tweet):
 
     analysis = TextBlob(tweet)
@@ -43,52 +72,119 @@ def analyze_sentiment(tweet):
 
 df["Sentiment"] = df["Tweet"].apply(analyze_sentiment)
 
-# -----------------------------
-# METRICS
-# -----------------------------
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Total Posts", len(df))
-
-with col2:
-    st.metric("Total Likes", df["Likes"].sum())
-
-with col3:
-    st.metric("Total Retweets", df["Retweets"].sum())
-
-# -----------------------------
-# DATA TABLE
-# -----------------------------
-st.subheader("📄 Tweet Dataset")
-
-st.dataframe(df)
-
-# -----------------------------
-# SENTIMENT COUNT
-# -----------------------------
-sentiment_count = df["Sentiment"].value_counts()
-
-# -----------------------------
-# PIE CHART
-# -----------------------------
-fig1 = px.pie(
-    names=sentiment_count.index,
-    values=sentiment_count.values,
-    title="Sentiment Distribution"
+# -----------------------------------
+# ENGAGEMENT SCORE
+# -----------------------------------
+df["EngagementScore"] = (
+    df["Likes"] +
+    df["Retweets"]
 )
 
-st.plotly_chart(fig1, use_container_width=True)
+# -----------------------------------
+# VIRAL SCORE
+# -----------------------------------
+average_engagement = df["EngagementScore"].mean()
 
-# -----------------------------
-# BAR CHART
-# -----------------------------
-fig2 = px.bar(
-    df,
-    x="Tweet",
-    y="Likes",
-    color="Sentiment",
-    title="Likes Per Tweet"
+df["Viral"] = df["EngagementScore"].apply(
+    lambda x: "🔥 Viral"
+    if x > average_engagement
+    else "Normal"
 )
 
-st.plotly_chart(fig2, use_container_width=True)
+# -----------------------------------
+# DASHBOARD PAGE
+# -----------------------------------
+if page == "Dashboard":
+
+    st.title("🚀 SocialPulse AI")
+
+    st.markdown(
+        "### AI-Powered Social Media Analytics Dashboard"
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric(
+            "Total Posts",
+            len(df)
+        )
+
+    with col2:
+        st.metric(
+            "Total Likes",
+            df["Likes"].sum()
+        )
+
+    with col3:
+        st.metric(
+            "Total Retweets",
+            df["Retweets"].sum()
+        )
+
+    with col4:
+        st.metric(
+            "Avg Engagement",
+            round(df["EngagementScore"].mean(), 2)
+        )
+
+    st.divider()
+
+    # PIE CHART
+    sentiment_count = df["Sentiment"].value_counts()
+
+    fig1 = px.pie(
+        names=sentiment_count.index,
+        values=sentiment_count.values,
+        title="Sentiment Distribution",
+        hole=0.5
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+    # BAR CHART
+    fig2 = px.bar(
+        df,
+        x="Tweet",
+        y="EngagementScore",
+        color="Sentiment",
+        title="Post Engagement"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+# -----------------------------------
+# DATASET PAGE
+# -----------------------------------
+elif page == "Dataset":
+
+    st.title("📄 Dataset")
+
+    st.dataframe(df)
+
+# -----------------------------------
+# ANALYTICS PAGE
+# -----------------------------------
+elif page == "Analytics":
+
+    st.title("📈 AI Analytics")
+
+    viral_posts = df[df["Viral"] == "🔥 Viral"]
+
+    st.subheader("🔥 Viral Posts")
+
+    st.dataframe(viral_posts)
+
+    st.subheader("🤖 AI Suggestions")
+
+    st.success(
+        "Post more positive content for higher engagement."
+    )
+
+    st.info(
+        "Posts with high engagement have viral potential."
+    )
+
+    st.warning(
+        "Negative posts received lower engagement."
+    )
