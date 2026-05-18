@@ -1,217 +1,147 @@
+"""
+═══════════════════════════════════════════════════════════════════════════════
+ ⚡ SOCIALPULSE AI — AI-Powered Social Media Intelligence Terminal
+ ═══════════════════════════════════════════════════════════════════════════════
+ A production-grade analytics platform with Binance-inspired UI.
+ Built with: Python · Streamlit · Plotly · TextBlob · Scikit-learn
+ ═══════════════════════════════════════════════════════════════════════════════
+"""
+
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-from textblob import TextBlob
+import os
 
-# -----------------------------------
-# PAGE CONFIG
-# -----------------------------------
+# ── Page Configuration ───────────────────────────────────────────────────
 st.set_page_config(
-    page_title="SocialPulse AI",
-    page_icon="🚀",
-    layout="wide"
+    page_title="SocialPulse AI — Intelligence Terminal",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# -----------------------------------
-# CUSTOM CSS
-# -----------------------------------
-# -----------------------------------
-# BINANCE STYLE CSS
-# -----------------------------------
+# ── Load Custom CSS ──────────────────────────────────────────────────────
+css_path = os.path.join(os.path.dirname(__file__), "style.css")
+if os.path.exists(css_path):
+    with open(css_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-
-/* Main App */
-.stApp {
-    background-color: #0B0E11;
-    color: white;
-}
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: #161A1E;
-    border-right: 1px solid #2B3139;
-}
-
-/* Sidebar Text */
-section[data-testid="stSidebar"] * {
-    color: white;
-}
-
-/* Metric Cards */
-[data-testid="stMetric"] {
-    background: #1E2329;
-    border: 1px solid #2B3139;
-    padding: 20px;
-    border-radius: 15px;
-}
-
-/* Titles */
-h1 {
-    color: #FCD535;
-}
-
-/* Data Table */
-[data-testid="stDataFrame"] {
-    border: 1px solid #2B3139;
-    border-radius: 10px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------------------
-# SIDEBAR
-# -----------------------------------
-
-st.sidebar.title("📌 Navigation")
-
-page = st.sidebar.radio(
-    "Go To",
-    ["Dashboard", "Dataset", "Analytics"]
+# ── Import Modules ───────────────────────────────────────────────────────
+from utils.data_loader import load_dataset
+from utils.sentiment import get_sentiment
+from utils.analytics import (
+    compute_engagement_metrics,
+    detect_fake_engagement,
+)
+from dashboard import (
+    overview,
+    sentiment_page,
+    engagement_page,
+    ai_insights_page,
+    influencer_page,
+    dataset_page,
 )
 
-# -----------------------------------
-# LOAD DATA
-# -----------------------------------
-df = pd.read_csv("tweets.csv")
+# ══════════════════════════════════════════════════════════════════════════
+# SIDEBAR — Premium Navigation
+# ══════════════════════════════════════════════════════════════════════════
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center;padding:20px 0 10px;">
+        <span style="font-size:2.5rem;">⚡</span>
+        <h2 style="color:#FCD535 !important;margin:8px 0 4px !important;
+                   font-size:1.4rem !important;border:none !important;
+                   padding:0 !important;">SocialPulse AI</h2>
+        <p style="color:#848E9C;font-size:0.75rem;letter-spacing:2px;
+                  text-transform:uppercase;margin:0;">Intelligence Terminal</p>
+    </div>
+    <hr style="border-color:#2B3139;margin:16px 0;">
+    """, unsafe_allow_html=True)
 
-# -----------------------------------
-# SENTIMENT FUNCTION
-# -----------------------------------
-def analyze_sentiment(tweet):
-
-    analysis = TextBlob(tweet)
-
-    polarity = analysis.sentiment.polarity
-
-    if polarity > 0:
-        return "Positive"
-
-    elif polarity < 0:
-        return "Negative"
-
-    else:
-        return "Neutral"
-
-df["Sentiment"] = df["Tweet"].apply(analyze_sentiment)
-
-# -----------------------------------
-# ENGAGEMENT SCORE
-# -----------------------------------
-df["EngagementScore"] = (
-    df["Likes"] +
-    df["Retweets"]
-)
-
-# -----------------------------------
-# VIRAL SCORE
-# -----------------------------------
-average_engagement = df["EngagementScore"].mean()
-
-df["Viral"] = df["EngagementScore"].apply(
-    lambda x: "🔥 Viral"
-    if x > average_engagement
-    else "Normal"
-)
-
-# -----------------------------------
-# DASHBOARD PAGE
-# -----------------------------------
-if page == "Dashboard":
-
-    st.title("🚀 SocialPulse AI")
-
-    st.markdown(
-        "### AI-Powered Social Media Analytics Dashboard"
+    page = st.radio(
+        "Navigation",
+        [
+            "🏠 Overview",
+            "🧠 Sentiment Analysis",
+            "⚡ Engagement & Viral",
+            "🤖 AI Recommendations",
+            "👑 Influencer & Trends",
+            "📄 Dataset & Export",
+        ],
+        label_visibility="collapsed",
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    st.markdown("<hr style='border-color:#2B3139;margin:16px 0;'>", unsafe_allow_html=True)
 
-    with col1:
-        st.metric(
-            "Total Posts",
-            len(df)
-        )
-
-    with col2:
-        st.metric(
-            "Total Likes",
-            df["Likes"].sum()
-        )
-
-    with col3:
-        st.metric(
-            "Total Retweets",
-            df["Retweets"].sum()
-        )
-
-    with col4:
-        st.metric(
-            "Avg Engagement",
-            round(df["EngagementScore"].mean(), 2)
-        )
-
-    st.divider()
-
-    # PIE CHART
-    sentiment_count = df["Sentiment"].value_counts()
-
-    fig1 = px.pie(
-        names=sentiment_count.index,
-        values=sentiment_count.values,
-        title="Sentiment Distribution",
-        hole=0.5
+    # ── Data Source ──────────────────────────────────────────────────
+    st.markdown("##### 📂 Data Source")
+    data_source = st.radio(
+        "Source", ["Default Dataset", "Upload CSV"],
+        label_visibility="collapsed",
     )
 
-    st.plotly_chart(fig1, use_container_width=True)
+    uploaded = None
+    if data_source == "Upload CSV":
+        uploaded = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
 
-    # BAR CHART
-    fig2 = px.bar(
-        df,
-        x="Tweet",
-        y="EngagementScore",
-        color="Sentiment",
-        title="Post Engagement"
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
-
+    st.markdown("""
+    <hr style="border-color:#2B3139;margin:16px 0;">
+    <div style="text-align:center;padding:10px 0;">
+        <p style="color:#848E9C;font-size:0.7rem;margin:0;">
+            Built with ❤️ using Python & Streamlit<br>
+            © 2026 SocialPulse AI
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
-# -----------------------------------
-# DATASET PAGE
-# -----------------------------------
-elif page == "Dataset":
+# ══════════════════════════════════════════════════════════════════════════
+# DATA PIPELINE — Load → Analyze → Enrich
+# ══════════════════════════════════════════════════════════════════════════
+@st.cache_data(show_spinner="⚡ Loading data pipeline...")
+def load_and_process(uploaded_file=None):
+    """Full data pipeline: load → sentiment → engagement → fake detection."""
+    df = load_dataset(uploaded_file)
 
-    st.title("📄 Dataset")
+    # Sentiment analysis
+    sentiments = df["Tweet"].apply(get_sentiment)
+    df["Sentiment"] = sentiments.apply(lambda x: x["label"])
+    df["Polarity"] = sentiments.apply(lambda x: x["polarity"])
+    df["Subjectivity"] = sentiments.apply(lambda x: x["subjectivity"])
+    df["Confidence"] = sentiments.apply(lambda x: x["confidence"])
+    df["Mood"] = sentiments.apply(lambda x: x["mood"])
 
-    st.dataframe(df)
+    # Engagement metrics
+    df = compute_engagement_metrics(df)
 
-# -----------------------------------
-# ANALYTICS PAGE
-# -----------------------------------
-elif page == "Analytics":
+    # Fake engagement detection
+    df = detect_fake_engagement(df)
 
-    st.title("📈 AI Analytics")
+    return df
 
-    viral_posts = df[df["Viral"] == "🔥 Viral"]
 
-    st.subheader("🔥 Viral Posts")
+# Load data
+try:
+    df = load_and_process(uploaded)
+except Exception as e:
+    st.error(f"❌ Data loading error: {e}")
+    st.stop()
 
-    st.dataframe(viral_posts)
+# Sentiment distribution (used by multiple pages)
+sentiment_dist = df["Sentiment"].value_counts().to_dict()
 
-    st.subheader("🤖 AI Suggestions")
 
-    st.success(
-        "Post more positive content for higher engagement."
-    )
-
-    st.info(
-        "Posts with high engagement have viral potential."
-    )
-
-    st.warning(
-        "Negative posts received lower engagement."
-    )
+# ══════════════════════════════════════════════════════════════════════════
+# PAGE ROUTER
+# ══════════════════════════════════════════════════════════════════════════
+if "Overview" in page:
+    overview.render(df)
+elif "Sentiment" in page:
+    sentiment_page.render(df)
+elif "Engagement" in page:
+    engagement_page.render(df)
+elif "Recommendation" in page:
+    ai_insights_page.render(df, sentiment_dist)
+elif "Influencer" in page:
+    influencer_page.render(df)
+elif "Dataset" in page:
+    dataset_page.render(df)
