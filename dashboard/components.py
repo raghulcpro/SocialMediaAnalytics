@@ -39,18 +39,23 @@ def render_section_header(icon, title):
 
 
 def render_recommendation_card(rec):
+    import re
     pcls = f"priority-{rec['priority']}"
+    # Convert markdown **bold** to HTML <b> tags
+    desc = re.sub(r'\*\*(.+?)\*\*', r'<b style="color:#EAECEF;">\1</b>', rec['description'])
     st.markdown(f"""
     <div class="rec-card">
         <div class="rec-icon">{rec['icon']}</div>
         <div class="rec-title">{rec['title']}</div>
-        <div class="rec-desc">{rec['description']}</div>
+        <div class="rec-desc">{desc}</div>
         <span class="rec-priority {pcls}">{rec['priority']}</span>
     </div>
     """, unsafe_allow_html=True)
 
 
 def render_info_panel(title, text):
+    import re
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b style="color:#EAECEF;">\1</b>', text)
     st.markdown(f"""
     <div class="info-panel">
         <h4>{title}</h4>
