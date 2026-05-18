@@ -75,13 +75,24 @@ with st.sidebar:
     # ── Data Source ──────────────────────────────────────────────────
     st.markdown("##### 📂 Data Source")
     data_source = st.radio(
-        "Source", ["Default Dataset", "Upload CSV"],
+        "Source", ["Default Dataset", "Upload CSV", "Paste Raw CSV (Grok)"],
         label_visibility="collapsed",
     )
 
     uploaded = None
+    raw_csv_text = None
     if data_source == "Upload CSV":
         uploaded = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
+    elif data_source == "Paste Raw CSV (Grok)":
+        with st.expander("🤖 How to get data from Grok?"):
+            st.markdown("""
+            **1. Paste this into Grok:**
+            ```text
+            Fetch 30 recent tweets from @username. Format strictly as a raw CSV inside a single code block. Use columns: Date,Tweet,Likes,Retweets,Replies,Views,Username. Enclose Tweet text in double quotes. No other text.
+            ```
+            **2. Copy the CSV block and paste it below.**
+            """)
+        raw_csv_text = st.text_area("Paste Raw CSV Data Here:", height=150, placeholder="Date,Tweet,Likes,Retweets,Replies,Views,Username\n2026-05-18,\"Example tweet\",100,20,5,500,@user")
 
     st.markdown("""
     <hr style="border-color:#2B3139;margin:16px 0;">
@@ -98,9 +109,9 @@ with st.sidebar:
 # DATA PIPELINE — Load → Analyze → Enrich
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data(show_spinner="⚡ Loading data pipeline...")
-def load_and_process(uploaded_file=None):
+def load_and_process(uploaded_file=None, raw_csv_text=None):
     """Full data pipeline: load → sentiment → engagement → fake detection."""
-    df = load_dataset(uploaded_file)
+    df = load_dataset(uploaded_file, raw_csv_text)
 
     # Sentiment analysis
     sentiments = df["Tweet"].apply(get_sentiment)
@@ -121,7 +132,7 @@ def load_and_process(uploaded_file=None):
 
 # Load data
 try:
-    df = load_and_process(uploaded)
+    df = load_and_process(uploaded, raw_csv_text)
 except Exception as e:
     st.error(f"❌ Data loading error: {e}")
     st.stop()

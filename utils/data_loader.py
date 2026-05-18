@@ -14,10 +14,14 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 DEFAULT_FILE = os.path.join(DATA_DIR, "tweets.csv")
 
 
-def load_dataset(uploaded_file=None) -> pd.DataFrame:
-    """Load dataset from uploaded file or default CSV."""
+import io
+
+def load_dataset(uploaded_file=None, raw_csv_text=None) -> pd.DataFrame:
+    """Load dataset from uploaded file, raw text, or default CSV."""
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
+    elif raw_csv_text is not None and raw_csv_text.strip() != "":
+        df = pd.read_csv(io.StringIO(raw_csv_text))
     elif os.path.exists(DEFAULT_FILE):
         df = pd.read_csv(DEFAULT_FILE)
     else:
