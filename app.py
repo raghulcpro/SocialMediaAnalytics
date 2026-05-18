@@ -15,23 +15,47 @@ st.set_page_config(
 # -----------------------------------
 # CUSTOM CSS
 # -----------------------------------
+# -----------------------------------
+# BINANCE STYLE CSS
+# -----------------------------------
+
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0E1117;
+/* Main App */
+.stApp {
+    background-color: #0B0E11;
     color: white;
 }
 
-[data-testid="stMetric"] {
-    background-color: #1E1E1E;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 0px 15px rgba(0,255,255,0.2);
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #161A1E;
+    border-right: 1px solid #2B3139;
 }
 
-h1, h2, h3 {
-    color: #00F5FF;
+/* Sidebar Text */
+section[data-testid="stSidebar"] * {
+    color: white;
+}
+
+/* Metric Cards */
+[data-testid="stMetric"] {
+    background: #1E2329;
+    border: 1px solid #2B3139;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+/* Titles */
+h1 {
+    color: #FCD535;
+}
+
+/* Data Table */
+[data-testid="stDataFrame"] {
+    border: 1px solid #2B3139;
+    border-radius: 10px;
 }
 
 </style>
@@ -40,6 +64,7 @@ h1, h2, h3 {
 # -----------------------------------
 # SIDEBAR
 # -----------------------------------
+
 st.sidebar.title("📌 Navigation")
 
 page = st.sidebar.radio(
@@ -152,6 +177,8 @@ if page == "Dashboard":
     )
 
     st.plotly_chart(fig2, use_container_width=True)
+
+
 
 # -----------------------------------
 # DATASET PAGE
