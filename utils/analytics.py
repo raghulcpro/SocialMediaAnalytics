@@ -4,6 +4,7 @@
  ────────────────
  Core computation module for engagement metrics, viral prediction,
  trend detection, influencer scoring, and fake engagement detection.
+ Supports multi-platform data (Twitter/X, Instagram).
 ===============================================================================
 """
 
@@ -12,12 +13,16 @@ import numpy as np
 from datetime import datetime
 
 
-def compute_engagement_metrics(df: pd.DataFrame) -> pd.DataFrame:
+def compute_engagement_metrics(df: pd.DataFrame, max_post_length: int = 280) -> pd.DataFrame:
     """
     Compute comprehensive engagement metrics for each post.
-    
+
+    Args:
+        df: DataFrame with standardized columns (Tweet, Likes, Retweets, Replies, Views).
+        max_post_length: Maximum post length for the platform (280 for Twitter, 2200 for Instagram).
+
     Metrics calculated:
-        - EngagementScore: weighted sum of likes, retweets, replies
+        - EngagementScore: weighted sum of likes, retweets, replies (+ saves if present)
         - EngagementRate: engagement relative to views (%)
         - ViralScore: probability of going viral (0-100)
         - QualityScore: content quality heuristic (0-100)
@@ -28,11 +33,13 @@ def compute_engagement_metrics(df: pd.DataFrame) -> pd.DataFrame:
     likes = df.get("Likes", pd.Series(0, index=df.index))
     retweets = df.get("Retweets", pd.Series(0, index=df.index))
     replies = df.get("Replies", pd.Series(0, index=df.index))
+    saves = df.get("Saves", pd.Series(0, index=df.index))
 
     df["EngagementScore"] = (
         likes * 1.0 +
         retweets * 2.0 +
-        replies * 1.5
+        replies * 1.5 +
+        saves * 2.5  # Saves are high-intent — weighted heavily (Instagram metric)
     )
 
     # ── Engagement Rate (% of views) ────────────────────────────────────
@@ -66,7 +73,7 @@ def compute_engagement_metrics(df: pd.DataFrame) -> pd.DataFrame:
         has_url = df["Tweet"].str.contains("http", na=False).astype(int)
 
         df["QualityScore"] = np.clip(
-            (tweet_lengths / 280 * 30) +
+            (tweet_lengths / max_post_length * 30) +
             (has_hashtags * 15) +
             (has_url * 10) +
             (df["ViralScore"] * 0.45),

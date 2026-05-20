@@ -5,9 +5,13 @@ import streamlit as st
 import pandas as pd
 from dashboard.components import render_section_header, render_metric_card
 from utils.sentiment import extract_keywords
+from utils.platform_config import get_platform_config
 
 
-def render(df):
+def render(df, platform="Twitter / X"):
+    cfg = get_platform_config(platform)
+    post_label = cfg["post_label"]
+
     render_section_header("📄", "Dataset Explorer")
 
     # ── Dataset Stats ────────────────────────────────────────────────
@@ -37,12 +41,20 @@ def render(df):
             cats = st.multiselect("Category", df["Category"].unique().tolist(), default=df["Category"].unique().tolist())
             filtered = filtered[filtered["Category"].isin(cats)]
     with col3:
-        search = st.text_input("Search tweets", "")
+        search = st.text_input(f"Search {post_label.lower()}s", "")
         if search:
             filtered = filtered[filtered["Tweet"].str.contains(search, case=False, na=False)]
 
     st.markdown(f"**Showing {len(filtered)} of {len(df)} records**")
-    st.dataframe(filtered, width="stretch", height=400)
+
+    # Rename columns for display
+    display_df = filtered.rename(columns={
+        "Tweet": post_label,
+        "Retweets": cfg["shares_label"],
+        "Replies": cfg["comments_label"],
+        "Views": cfg["impressions_label"],
+    })
+    st.dataframe(display_df, width="stretch", height=400)
 
     # ── Word Cloud (keyword list) ────────────────────────────────────
     render_section_header("☁️", "Top Keywords")

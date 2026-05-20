@@ -6,11 +6,15 @@ import pandas as pd
 from dashboard.components import render_section_header, render_metric_card, render_info_panel
 from utils.charts import donut_chart, line_chart, bar_chart
 from utils.sentiment import detect_toxicity
+from utils.platform_config import get_platform_config
 
 
-def render(df):
+def render(df, platform="Twitter / X"):
+    cfg = get_platform_config(platform)
+    post_label = cfg["post_label"].lower()
+
     render_section_header("🧠", "Sentiment Analysis Engine")
-    st.caption("NLP-powered sentiment classification with mood analysis and toxicity detection.")
+    st.caption(f"NLP-powered sentiment classification of {platform} {post_label}s with mood analysis and toxicity detection.")
 
     # ── Sentiment Metrics ────────────────────────────────────────────
     sent = df["Sentiment"].value_counts()
@@ -68,12 +72,14 @@ def render(df):
 
     c1, c2 = st.columns(2)
     with c1:
-        render_metric_card("☠️", str(toxic_count), "Toxic Posts Detected")
+        render_metric_card("☠️", str(toxic_count), f"Toxic {cfg['post_label']}s Detected")
     with c2:
-        render_metric_card("🚫", str(spam_count), "Spam Posts Detected")
+        render_metric_card("🚫", str(spam_count), f"Spam {cfg['post_label']}s Detected")
 
     flagged = df[df_tox["is_toxic"] | df_tox["is_spam"]]
     if len(flagged) > 0:
-        st.dataframe(flagged[["Tweet", "Sentiment"]].reset_index(drop=True), width="stretch")
+        display = flagged[["Tweet", "Sentiment"]].reset_index(drop=True)
+        display = display.rename(columns={"Tweet": cfg["post_label"]})
+        st.dataframe(display, width="stretch")
     else:
         render_info_panel("✅ All Clear", "No toxic or spam content detected in the dataset.")

@@ -4,6 +4,7 @@
  ═══════════════════════════════════════════════════════════════════════════════
  A production-grade analytics platform with Binance-inspired UI.
  Built with: Python · Streamlit · Plotly · TextBlob · Scikit-learn
+ Supports: Twitter/X · Instagram
  ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -33,6 +34,7 @@ from utils.analytics import (
     compute_engagement_metrics,
     detect_fake_engagement,
 )
+from utils.platform_config import PLATFORMS, get_platform_config
 from dashboard import (
     overview,
     sentiment_page,
@@ -54,6 +56,29 @@ with st.sidebar:
         <div style="font-size:0.65rem;color:#B7BDC6;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Intelligence Hub</div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── Platform Selector ────────────────────────────────────────────
+    st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>🌐 PLATFORM</div>", unsafe_allow_html=True)
+
+    platform_options = list(PLATFORMS.keys())
+    platform = st.radio(
+        "Platform",
+        platform_options,
+        label_visibility="collapsed",
+        key="platform_select",
+        horizontal=True,
+    )
+    st.session_state["platform"] = platform
+    cfg = get_platform_config(platform)
+
+    st.markdown(f"""
+    <div style="text-align:center;padding:8px;margin:8px 0;border-radius:8px;background:rgba(252,213,53,0.08);border:1px solid rgba(252,213,53,0.15);">
+        <span style="font-size:1.4rem;">{cfg['icon']}</span>
+        <span style="color:#EAECEF;font-size:0.85rem;font-weight:600;margin-left:6px;">{platform}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color:#2B3139;margin:15px 0;'>", unsafe_allow_html=True)
 
     # Navigation Radio
     st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>CORE</div>", unsafe_allow_html=True)
@@ -88,23 +113,28 @@ with st.sidebar:
         uploaded = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
     elif data_source == "Paste Raw CSV (Grok)":
         with st.expander("🤖 How to get data from Grok?"):
-            st.markdown("""
+            st.markdown(f"""
             **1. Paste this into Grok:**
             ```text
-            Fetch 30 recent tweets from @username. Format strictly as a raw CSV inside a single code block. Use columns: Date,Tweet,Likes,Retweets,Replies,Views,Username. Enclose Tweet text in double quotes. No other text.
+            {cfg['grok_prompt']}
             ```
             **2. Copy the CSV block and paste it below.**
             """)
-        raw_csv_text = st.text_area("Paste Raw CSV Data Here:", height=150, placeholder="Date,Tweet,Likes,Retweets,Replies,Views,Username\n2026-05-18,\"Example tweet\",100,20,5,500,@user")
+        raw_csv_text = st.text_area(
+            "Paste Raw CSV Data Here:", height=150,
+            placeholder=f"Date,{cfg['post_label']},{cfg['reactions_label']},{cfg['shares_label']},{cfg['comments_label']},{cfg['impressions_label']},Username\n2026-05-18,\"Example post\",100,20,5,500,@user"
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # DATA PIPELINE — Load → Analyze → Enrich
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data(show_spinner="⚡ Loading data pipeline...")
-def load_and_process(uploaded_file=None, raw_csv_text=None):
+def load_and_process(uploaded_file=None, raw_csv_text=None, platform="Twitter / X"):
     """Full data pipeline: load → sentiment → engagement → fake detection."""
-    df = load_dataset(uploaded_file, raw_csv_text)
+    df = load_dataset(uploaded_file, raw_csv_text, platform=platform)
+
+    plat_cfg = get_platform_config(platform)
 
     # Sentiment analysis
     sentiments = df["Tweet"].apply(get_sentiment)
@@ -114,8 +144,8 @@ def load_and_process(uploaded_file=None, raw_csv_text=None):
     df["Confidence"] = sentiments.apply(lambda x: x["confidence"])
     df["Mood"] = sentiments.apply(lambda x: x["mood"])
 
-    # Engagement metrics
-    df = compute_engagement_metrics(df)
+    # Engagement metrics (platform-aware max length)
+    df = compute_engagement_metrics(df, max_post_length=plat_cfg["max_post_length"])
 
     # Fake engagement detection
     df = detect_fake_engagement(df)
@@ -125,7 +155,7 @@ def load_and_process(uploaded_file=None, raw_csv_text=None):
 
 # Load data
 try:
-    df = load_and_process(uploaded, raw_csv_text)
+    df = load_and_process(uploaded, raw_csv_text, platform=platform)
 except Exception as e:
     st.error(f"❌ Data loading error: {e}")
     st.stop()
@@ -138,14 +168,14 @@ sentiment_dist = df["Sentiment"].value_counts().to_dict()
 # PAGE ROUTER
 # ══════════════════════════════════════════════════════════════════════════
 if "Overview" in page:
-    overview.render(df)
+    overview.render(df, platform)
 elif "Sentiment" in page:
-    sentiment_page.render(df)
+    sentiment_page.render(df, platform)
 elif "Engagement" in page:
-    engagement_page.render(df)
+    engagement_page.render(df, platform)
 elif "Recommendation" in page:
-    ai_insights_page.render(df, sentiment_dist)
+    ai_insights_page.render(df, sentiment_dist, platform)
 elif "Influencer" in page:
     influencer_page.render(df)
 elif "Dataset" in page:
-    dataset_page.render(df)
+    dataset_page.render(df, platform)

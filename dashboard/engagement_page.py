@@ -6,21 +6,28 @@ import pandas as pd
 import numpy as np
 from dashboard.components import render_section_header, render_metric_card
 from utils.charts import scatter_chart, bar_chart, heatmap_chart, gauge_chart
+from utils.platform_config import get_platform_config
 
 
-def render(df):
+def render(df, platform="Twitter / X"):
+    cfg = get_platform_config(platform)
     render_section_header("⚡", "Engagement Analytics")
 
     # ── Key Metrics ──────────────────────────────────────────────────
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
+    has_saves = "Saves" in df.columns and df["Saves"].sum() > 0
+    cols = st.columns(5 if has_saves else 4)
+
+    with cols[0]:
         render_metric_card("📊", f"{df['EngagementRate'].mean():.2f}%", "Avg Engagement Rate")
-    with c2:
+    with cols[1]:
         render_metric_card("🔥", str(df["IsViral"].sum()), "Viral Posts")
-    with c3:
+    with cols[2]:
         render_metric_card("⭐", f"{df['QualityScore'].mean():.1f}", "Avg Quality Score")
-    with c4:
-        render_metric_card("💬", f"{df['Replies'].mean():.0f}", "Avg Replies")
+    with cols[3]:
+        render_metric_card("💬", f"{df['Replies'].mean():.0f}", f"Avg {cfg['comments_label']}")
+    if has_saves:
+        with cols[4]:
+            render_metric_card("🔖", f"{df['Saves'].mean():.0f}", "Avg Saves")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -29,7 +36,8 @@ def render(df):
     col_a, col_b = st.columns(2)
     with col_a:
         fig = scatter_chart(df, "Likes", "Retweets", size="EngagementScore",
-                            color="Sentiment", title="Likes vs Retweets (bubble = engagement)")
+                            color="Sentiment",
+                            title=f"{cfg['reactions_label']} vs {cfg['shares_label']} (bubble = engagement)")
         st.plotly_chart(fig, width="stretch")
     with col_b:
         fig = scatter_chart(df, "EngagementScore", "ViralScore",
@@ -38,10 +46,16 @@ def render(df):
 
     # ── Viral Prediction ─────────────────────────────────────────────
     render_section_header("🚀", "Viral Prediction System")
-    viral_df = df.nlargest(10, "ViralScore")[
-        ["Tweet", "ViralScore", "EngagementScore", "Likes", "Retweets", "Sentiment"]
-    ].reset_index(drop=True)
+    display_cols = ["Tweet", "ViralScore", "EngagementScore", "Likes", "Retweets", "Sentiment"]
+    if has_saves:
+        display_cols.insert(4, "Saves")
+    viral_df = df.nlargest(10, "ViralScore")[display_cols].reset_index(drop=True)
     viral_df.index = viral_df.index + 1
+    # Rename for display
+    viral_df = viral_df.rename(columns={
+        "Tweet": cfg["post_label"],
+        "Retweets": cfg["shares_label"],
+    })
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -86,4 +100,9 @@ def render(df):
             render_metric_card("✅", str(len(df) - len(suspicious)), "Authentic Posts")
 
         if len(suspicious) > 0:
-            st.dataframe(suspicious[["Tweet", "Likes", "Retweets", "LikeRetweetRatio", "FakeScore"]].reset_index(drop=True), width="stretch")
+            fake_display = suspicious[["Tweet", "Likes", "Retweets", "LikeRetweetRatio", "FakeScore"]].reset_index(drop=True)
+            fake_display = fake_display.rename(columns={
+                "Tweet": cfg["post_label"],
+                "Retweets": cfg["shares_label"],
+            })
+            st.dataframe(fake_display, width="stretch")

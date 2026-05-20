@@ -4,11 +4,13 @@ Reusable premium HTML components for the dashboard.
 import streamlit as st
 
 
-def render_hero():
-    st.markdown("""
+def render_hero(platform="Twitter / X"):
+    from utils.platform_config import get_platform_config
+    cfg = get_platform_config(platform)
+    st.markdown(f"""
     <div class="hero-header">
         <h1>⚡ SocialPulse AI</h1>
-        <p class="hero-subtitle">AI-Powered Social Media Intelligence Terminal</p>
+        <p class="hero-subtitle">AI-Powered Social Media Intelligence Terminal &nbsp;{cfg['icon']}&nbsp; {platform}</p>
     </div>
     """, unsafe_allow_html=True)
 

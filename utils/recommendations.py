@@ -3,6 +3,7 @@
  AI RECOMMENDATION ENGINE
  ────────────────────────
  Smart suggestions for social media strategy optimization.
+ Platform-aware: adapts terminology for Twitter/X and Instagram.
 ===============================================================================
 """
 
@@ -10,9 +11,15 @@ import pandas as pd
 import numpy as np
 
 
-def generate_recommendations(df, sentiment_dist=None):
+def generate_recommendations(df, sentiment_dist=None, platform="Twitter / X"):
     """Generate AI-powered recommendations from data analysis."""
     recs = []
+
+    # Platform-aware labels
+    from utils.platform_config import get_platform_config
+    cfg = get_platform_config(platform)
+    post_label = cfg["post_label"].lower()
+    max_len = cfg["max_post_length"]
 
     if "Date" in df.columns:
         dt = df.copy()
@@ -28,10 +35,15 @@ def generate_recommendations(df, sentiment_dist=None):
     if "Tweet" in df.columns:
         dt = df.copy()
         dt["Len"] = dt["Tweet"].str.len()
-        dt["Bucket"] = pd.cut(dt["Len"], bins=[0, 50, 100, 150, 200, 280])
+        # Platform-aware bucket sizes
+        if max_len > 500:
+            bins = [0, 100, 300, 500, 1000, max_len]
+        else:
+            bins = [0, 50, 100, 150, 200, max_len]
+        dt["Bucket"] = pd.cut(dt["Len"], bins=bins)
         be = dt.groupby("Bucket", observed=True)["EngagementScore"].mean()
         if len(be) > 0:
-            recs.append({"icon": "📝", "title": "Ideal Caption Length",
+            recs.append({"icon": "📝", "title": f"Ideal {post_label.title()} Length",
                 "description": f"Posts with **{be.idxmax()}** chars perform best.",
                 "priority": "high", "category": "Content"})
 
@@ -84,9 +96,17 @@ def generate_recommendations(df, sentiment_dist=None):
             "priority": "medium", "category": "Viral"})
 
     if "Replies" in df.columns:
+        comments_label = cfg["comments_label"].lower()
         recs.append({"icon": "💬", "title": "Community Engagement",
-            "description": f"Avg replies: **{df['Replies'].mean():.0f}**. Ask questions to boost.",
+            "description": f"Avg {comments_label}: **{df['Replies'].mean():.0f}**. Ask questions to boost.",
             "priority": "medium", "category": "Community"})
+
+    # Instagram-specific: Saves insight
+    if "Saves" in df.columns and df["Saves"].sum() > 0:
+        avg_saves = df["Saves"].mean()
+        recs.append({"icon": "🔖", "title": "Save Rate Analysis",
+            "description": f"Avg saves: **{avg_saves:.0f}**. High saves = high-value content. Create more saveable posts (tips, tutorials, infographics).",
+            "priority": "medium", "category": "Content"})
 
     return recs
 

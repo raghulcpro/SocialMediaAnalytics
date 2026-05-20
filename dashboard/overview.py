@@ -8,10 +8,12 @@ from dashboard.components import (
     render_ticker, render_info_panel
 )
 from utils.charts import donut_chart, area_chart, bar_chart
+from utils.platform_config import get_platform_config
 
 
-def render(df):
-    render_hero()
+def render(df, platform="Twitter / X"):
+    cfg = get_platform_config(platform)
+    render_hero(platform)
 
     # ── Live Ticker ──────────────────────────────────────────────────
     total_eng = int(df["EngagementScore"].sum())
@@ -26,18 +28,23 @@ def render(df):
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Hero Metric Cards ────────────────────────────────────────────
-    c1, c2, c3, c4, c5 = st.columns(5)
-    with c1:
+    has_saves = "Saves" in df.columns and df["Saves"].sum() > 0
+    cols = st.columns(6 if has_saves else 5)
+
+    with cols[0]:
         render_metric_card("📝", f"{len(df):,}", "Total Posts")
-    with c2:
-        render_metric_card("❤️", f"{int(df['Likes'].sum()):,}", "Total Likes", "+12.4%", "up")
-    with c3:
-        render_metric_card("🔁", f"{int(df['Retweets'].sum()):,}", "Retweets", "+8.7%", "up")
-    with c4:
+    with cols[1]:
+        render_metric_card("❤️", f"{int(df['Likes'].sum()):,}", f"Total {cfg['reactions_label']}", "+12.4%", "up")
+    with cols[2]:
+        render_metric_card("🔁", f"{int(df['Retweets'].sum()):,}", f"Total {cfg['shares_label']}", "+8.7%", "up")
+    with cols[3]:
         v = int(df["Views"].sum()) if "Views" in df.columns else 0
-        render_metric_card("👁️", f"{v:,}", "Total Views", "+15.2%", "up")
-    with c5:
+        render_metric_card("👁️", f"{v:,}", f"Total {cfg['impressions_label']}", "+15.2%", "up")
+    with cols[4]:
         render_metric_card("⚡", f"{df['EngagementScore'].mean():,.0f}", "Avg Engagement")
+    if has_saves:
+        with cols[5]:
+            render_metric_card("🔖", f"{int(df['Saves'].sum()):,}", "Total Saves")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -69,9 +76,15 @@ def render(df):
         st.plotly_chart(fig, width="stretch")
 
     # ── Top Posts Table ──────────────────────────────────────────────
-    render_section_header("🏆", "Top Performing Posts")
-    top = df.nlargest(5, "EngagementScore")[
-        ["Tweet", "Likes", "Retweets", "EngagementScore", "Sentiment", "ViralScore"]
-    ].reset_index(drop=True)
+    render_section_header("🏆", f"Top Performing {cfg['post_label']}s")
+    display_cols = ["Tweet", "Likes", "Retweets", "EngagementScore", "Sentiment", "ViralScore"]
+    if has_saves:
+        display_cols.insert(3, "Saves")
+    top = df.nlargest(5, "EngagementScore")[display_cols].reset_index(drop=True)
     top.index = top.index + 1
+    # Rename columns for display
+    top = top.rename(columns={
+        "Tweet": cfg["post_label"],
+        "Retweets": cfg["shares_label"],
+    })
     st.dataframe(top, width="stretch")
