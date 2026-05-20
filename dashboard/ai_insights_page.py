@@ -40,8 +40,8 @@ def render(df, sentiment_dist):
     if hash_recs:
         hdf = pd.DataFrame(hash_recs)
         fig = bar_chart(hdf, "hashtag", "avg_engagement", "Hashtag Performance Ranking")
-        st.plotly_chart(fig, use_container_width=True)
-        st.dataframe(hdf, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
+        st.dataframe(hdf, width="stretch")
     else:
         render_info_panel("No Hashtag Data", "Add hashtags to your dataset for analysis.")
 

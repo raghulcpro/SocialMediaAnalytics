@@ -26,7 +26,7 @@ def render(df):
     col1, col2 = st.columns([1, 2])
     with col1:
         render_score_badge(score)
-        st.markdown(f"<p style='text-align:center;color:#848E9C;'>Influencer Score for<br><b style='color:#FCD535;'>{sel}</b></p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center;color:#B7BDC6;font-size:0.95rem;'>Influencer Score for<br><b style='color:#FCD535;font-size:1.1rem;'>{sel}</b></p>", unsafe_allow_html=True)
 
         for k, v in bd.items():
             st.progress(v / 100, text=f"{k}: {v}")
@@ -36,7 +36,7 @@ def render(df):
             cats = list(bd.keys())
             vals = list(bd.values())
             fig = radar_chart(cats, vals, f"Profile Radar — {sel}")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     # ── User Comparison ──────────────────────────────────────────────
     if "Username" in df.columns and len(users) > 1:
@@ -63,7 +63,7 @@ def render(df):
                 u1: [s1["breakdown"][c] for c in cats],
                 u2: [s2["breakdown"][c] for c in cats],
             })
-            st.dataframe(cmp_df, use_container_width=True)
+            st.dataframe(cmp_df, width="stretch")
 
     # ══════════════════════════════════════════════════════════════════
     # TREND DETECTION
@@ -76,14 +76,14 @@ def render(df):
         st.markdown("##### 🔖 Trending Hashtags")
         hdf = pd.DataFrame(trends["hashtags"], columns=["Hashtag", "Mentions"])
         fig = bar_chart(hdf.head(10), "Hashtag", "Mentions", "Top Trending Hashtags")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # Category performance
     if trends["categories"]:
         st.markdown("##### 📂 Category Performance")
         cdf = pd.DataFrame(trends["categories"], columns=["Category", "Avg Engagement"])
         fig = bar_chart(cdf, "Category", "Avg Engagement", "Category Engagement Ranking")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # Engagement spikes
     if trends["engagement_spikes"]:

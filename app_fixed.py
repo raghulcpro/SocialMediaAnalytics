@@ -17,7 +17,6 @@ st.set_page_config(
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
-    menu_items=None
 )
 
 # ── Load Custom CSS ──────────────────────────────────────────────────────
@@ -50,16 +49,16 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:20px 0 15px;border-bottom:2px solid rgba(252,213,53,0.2);margin-bottom:20px;">
         <div style="font-size:2.2rem;margin-bottom:8px;">⚡</div>
-        <div style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#FCD535 0%,#F0B90B 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;">SocialPulse</div>
+        <div style="font-size:1.3rem;font-weight:800;color:#FCD535;margin-bottom:4px;">SocialPulse</div>
         <div style="font-size:0.65rem;color:#B7BDC6;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Intelligence Hub</div>
     </div>
     """, unsafe_allow_html=True)
 
     # Navigation Radio
-    st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>CORE</div>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.75rem;text-transform:uppercase;letter-spacing:1.5px;padding:15px 0 10px;'>📊 NAVIGATION</div>", unsafe_allow_html=True)
 
     page = st.radio(
-        "Navigation",
+        "Navigate",
         [
             "🏠 Overview",
             "🧠 Sentiment Analysis",
@@ -69,17 +68,16 @@ with st.sidebar:
             "📄 Dataset & Export",
         ],
         label_visibility="collapsed",
-        key="main_nav"
     )
 
-    st.markdown("<hr style='border-color:#2B3139;margin:20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<div style='margin:15px 0;border-top:1px solid rgba(252,213,53,0.2);'></div>", unsafe_allow_html=True)
 
     # ── Data Source ──────────────────────────────────────────────────
-    st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>📂 DATA SOURCE</div>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#FCD535;font-weight:800;font-size:0.75rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>📂 DATA SOURCE</div>", unsafe_allow_html=True)
     data_source = st.radio(
-        "Source", ["Default Dataset", "Upload CSV", "Paste Raw CSV (Grok)"],
+        "Source",
+        ["Default Dataset", "Upload CSV", "Paste Raw CSV (Grok)"],
         label_visibility="collapsed",
-        key="data_source"
     )
 
     uploaded = None
@@ -96,6 +94,10 @@ with st.sidebar:
             **2. Copy the CSV block and paste it below.**
             """)
         raw_csv_text = st.text_area("Paste Raw CSV Data Here:", height=150, placeholder="Date,Tweet,Likes,Retweets,Replies,Views,Username\n2026-05-18,\"Example tweet\",100,20,5,500,@user")
+
+    st.markdown("<div style='margin-top:20px;border-top:1px solid rgba(252,213,53,0.1);padding-top:15px;text-align:center;'>", unsafe_allow_html=True)
+    st.caption("Built with ❤️ using Python & Streamlit © 2026 SocialPulse AI")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════

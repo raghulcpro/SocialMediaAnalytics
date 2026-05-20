@@ -49,7 +49,7 @@ def render(df):
         # Sentiment donut
         sent = df["Sentiment"].value_counts()
         fig = donut_chart(sent.index.tolist(), sent.values.tolist(), "Sentiment Distribution")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col_b:
         # Engagement over time
@@ -57,7 +57,7 @@ def render(df):
             daily = df.groupby("Date")["EngagementScore"].sum().reset_index()
             daily.columns = ["Date", "Engagement"]
             fig = area_chart(daily, "Date", "Engagement", "Engagement Over Time")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     # ── Category Breakdown ───────────────────────────────────────────
     if "Category" in df.columns:
@@ -66,7 +66,7 @@ def render(df):
         cat = cat.sort_values("Avg Engagement", ascending=True)
         fig = bar_chart(cat, "Category", "Avg Engagement",
                         "Engagement by Category", horizontal=True)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Top Posts Table ──────────────────────────────────────────────
     render_section_header("🏆", "Top Performing Posts")
@@ -74,4 +74,4 @@ def render(df):
         ["Tweet", "Likes", "Retweets", "EngagementScore", "Sentiment", "ViralScore"]
     ].reset_index(drop=True)
     top.index = top.index + 1
-    st.dataframe(top, use_container_width=True)
+    st.dataframe(top, width="stretch")

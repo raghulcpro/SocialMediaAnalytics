@@ -75,7 +75,29 @@ header {
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0F1217 0%, #0B0E11 100%) !important;
     border-right: 1px solid var(--border) !important;
-    min-width: 260px !important;
+    min-width: 280px !important;
+}
+
+section[data-testid="stSidebar"] .stButton>button {
+    background: transparent !important;
+    border: none !important;
+    color: #B7BDC6 !important;
+    padding: 12px 14px !important;
+    margin: 4px 8px !important;
+    border-radius: 8px !important;
+    text-align: left !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    width: auto !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+section[data-testid="stSidebar"] .stButton>button:hover {
+    background: rgba(252, 213, 53, 0.1) !important;
+    border: 1px solid rgba(252, 213, 53, 0.2) !important;
+    color: #FCD535 !important;
+    transform: translateX(4px) !important;
+    box-shadow: none !important;
 }
 
 section[data-testid="stSidebar"]>div {
@@ -145,8 +167,14 @@ section[data-testid="stSidebar"] .stTextInput input:focus {
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] p,
 section[data-testid="stSidebar"] span {
-    color: var(--text2) !important;
+    color: var(--text) !important;
     font-size: 0.82rem !important;
+}
+
+section[data-testid="stSidebar"] h5,
+section[data-testid="stSidebar"] h4 {
+    color: var(--accent) !important;
+    font-weight: 700 !important;
 }
 
 /* Sidebar placeholder */
@@ -177,9 +205,14 @@ h2 {
 }
 
 h3 {
-    color: var(--text2) !important;
-    font-weight: 600 !important;
+    color: var(--text) !important;
+    font-weight: 700 !important;
     font-size: 1rem !important;
+}
+
+h5 {
+    color: var(--accent) !important;
+    font-weight: 700 !important;
 }
 
 h4,
@@ -330,7 +363,7 @@ textarea::placeholder {
 /* ══ SELECTBOX ══ */
 [data-baseweb="select"]>div {
     background: var(--card) !important;
-    border: 1px solid var(--border2) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: var(--r-sm) !important;
     color: var(--text) !important;
 }
@@ -344,6 +377,7 @@ textarea::placeholder {
 [data-baseweb="select"] div {
     color: var(--text) !important;
     background: transparent !important;
+    font-weight: 500 !important;
 }
 
 [data-baseweb="popover"] {
@@ -375,9 +409,9 @@ textarea::placeholder {
 }
 
 .stSelectbox label {
-    color: var(--text2) !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
+    color: var(--text) !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
 }
 
 /* ══ TABS ══ */
@@ -436,15 +470,15 @@ textarea::placeholder {
 /* ══ EXPANDER ══ */
 details {
     background: var(--card) !important;
-    border: 1px solid var(--border) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: var(--r-sm) !important;
 }
 
 details summary {
     color: var(--text) !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    padding: 12px 16px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    padding: 14px 16px !important;
     cursor: pointer !important;
     user-select: none !important;
 }
@@ -469,14 +503,15 @@ details[open] summary {
 }
 
 .stProgress>div>div {
-    background: var(--border) !important;
+    background: var(--border2) !important;
     border-radius: 4px !important;
 }
 
 .stProgress label,
 .stProgress span {
-    color: var(--text2) !important;
-    font-size: 0.78rem !important;
+    color: var(--text) !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
 }
 
 /* ══ FILE UPLOADER ══ */
@@ -493,11 +528,11 @@ details[open] summary {
 }
 
 [data-testid="stFileUploader"] * {
-    color: var(--text2) !important;
+    color: var(--text) !important;
 }
 
 [data-testid="stFileUploaderDropzoneInstructions"] {
-    color: var(--text3) !important;
+    color: var(--text2) !important;
 }
 
 /* ══ ALERTS ══ */
@@ -904,13 +939,13 @@ hr {
 
 /* Sidebar data source section */
 .ds-label {
-    font-size: 0.7rem !important;
+    font-size: 0.75rem !important;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: var(--text3) !important;
+    color: var(--accent) !important;
     font-weight: 700 !important;
     padding: 0 8px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     display: block;
 }
 

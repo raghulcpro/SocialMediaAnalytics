@@ -42,7 +42,7 @@ def render(df):
             filtered = filtered[filtered["Tweet"].str.contains(search, case=False, na=False)]
 
     st.markdown(f"**Showing {len(filtered)} of {len(df)} records**")
-    st.dataframe(filtered, use_container_width=True, height=400)
+    st.dataframe(filtered, width="stretch", height=400)
 
     # ── Word Cloud (keyword list) ────────────────────────────────────
     render_section_header("☁️", "Top Keywords")

@@ -25,17 +25,22 @@ def compute_engagement_metrics(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # ── Engagement Score (weighted) ──────────────────────────────────────
+    likes = df.get("Likes", pd.Series(0, index=df.index))
+    retweets = df.get("Retweets", pd.Series(0, index=df.index))
+    replies = df.get("Replies", pd.Series(0, index=df.index))
+
     df["EngagementScore"] = (
-        df["Likes"] * 1.0 +
-        df["Retweets"] * 2.0 +
-        df.get("Replies", pd.Series(0, index=df.index)) * 1.5
+        likes * 1.0 +
+        retweets * 2.0 +
+        replies * 1.5
     )
 
     # ── Engagement Rate (% of views) ────────────────────────────────────
-    if "Views" in df.columns:
+    views = df.get("Views", pd.Series(1, index=df.index))
+    if views.sum() > 0:
         df["EngagementRate"] = np.where(
-            df["Views"] > 0,
-            ((df["Likes"] + df["Retweets"] + df.get("Replies", 0)) / df["Views"]) * 100,
+            views > 0,
+            ((likes + retweets + replies) / views) * 100,
             0
         )
     else:

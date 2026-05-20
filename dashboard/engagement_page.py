@@ -30,11 +30,11 @@ def render(df):
     with col_a:
         fig = scatter_chart(df, "Likes", "Retweets", size="EngagementScore",
                             color="Sentiment", title="Likes vs Retweets (bubble = engagement)")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with col_b:
         fig = scatter_chart(df, "EngagementScore", "ViralScore",
                             color="Sentiment", title="Engagement vs Viral Score")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Viral Prediction ─────────────────────────────────────────────
     render_section_header("🚀", "Viral Prediction System")
@@ -47,10 +47,10 @@ def render(df):
     with col1:
         avg_viral = df["ViralScore"].mean()
         fig = gauge_chart(round(avg_viral, 1), "Avg Viral Probability", 100)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with col2:
         st.markdown("##### 🏆 Top Viral Candidates")
-        st.dataframe(viral_df, use_container_width=True)
+        st.dataframe(viral_df, width="stretch")
 
     # ── Engagement Heatmap ───────────────────────────────────────────
     if "Date" in df.columns:
@@ -73,7 +73,7 @@ def render(df):
             heat_data.append(row)
 
         fig = heatmap_chart(heat_data, [f"W{w}" for w in weeks], avail_days, "Weekly Engagement Heatmap")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Fake Engagement Detection ────────────────────────────────────
     if "FakeScore" in df.columns:
@@ -86,4 +86,4 @@ def render(df):
             render_metric_card("✅", str(len(df) - len(suspicious)), "Authentic Posts")
 
         if len(suspicious) > 0:
-            st.dataframe(suspicious[["Tweet", "Likes", "Retweets", "LikeRetweetRatio", "FakeScore"]].reset_index(drop=True), use_container_width=True)
+            st.dataframe(suspicious[["Tweet", "Likes", "Retweets", "LikeRetweetRatio", "FakeScore"]].reset_index(drop=True), width="stretch")

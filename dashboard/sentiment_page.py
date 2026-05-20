@@ -34,7 +34,7 @@ def render(df):
 
     with col_a:
         fig = donut_chart(sent.index.tolist(), sent.values.tolist(), "Sentiment Breakdown")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col_b:
         # Sentiment by engagement
@@ -42,14 +42,14 @@ def render(df):
             se = df.groupby("Sentiment")["EngagementScore"].mean().reset_index()
             se.columns = ["Sentiment", "Avg Engagement"]
             fig = bar_chart(se, "Sentiment", "Avg Engagement", "Engagement by Sentiment", color="Sentiment")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     # ── Sentiment Trend ──────────────────────────────────────────────
     if "Date" in df.columns:
         render_section_header("📈", "Sentiment Trend Over Time")
         daily = df.groupby(["Date", "Sentiment"]).size().reset_index(name="Count")
         fig = line_chart(daily, "Date", "Count", "Daily Sentiment Trend", color="Sentiment")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Mood Analysis ────────────────────────────────────────────────
     if "Mood" in df.columns:
@@ -57,7 +57,7 @@ def render(df):
         mood_counts = df["Mood"].value_counts().reset_index()
         mood_counts.columns = ["Mood", "Count"]
         fig = bar_chart(mood_counts, "Mood", "Count", "Content Mood Distribution")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Toxicity Detection ───────────────────────────────────────────
     render_section_header("🛡️", "Toxicity & Spam Detection")
@@ -74,6 +74,6 @@ def render(df):
 
     flagged = df[df_tox["is_toxic"] | df_tox["is_spam"]]
     if len(flagged) > 0:
-        st.dataframe(flagged[["Tweet", "Sentiment"]].reset_index(drop=True), use_container_width=True)
+        st.dataframe(flagged[["Tweet", "Sentiment"]].reset_index(drop=True), width="stretch")
     else:
         render_info_panel("✅ All Clear", "No toxic or spam content detected in the dataset.")
