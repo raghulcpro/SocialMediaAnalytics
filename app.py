@@ -125,6 +125,189 @@ with st.sidebar:
             placeholder=f"Date,{cfg['post_label']},{cfg['reactions_label']},{cfg['shares_label']},{cfg['comments_label']},{cfg['impressions_label']},Username\n2026-05-18,\"Example post\",100,20,5,500,@user"
         )
 
+    # ── Platform Data Guide ─────────────────────────────────────────
+    st.markdown("<hr style='border-color:#2B3139;margin:20px 0;'>", unsafe_allow_html=True)
+    st.markdown(f"<div style='color:#FCD535;font-weight:800;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0;'>{cfg['icon']} HOW TO GET {platform.upper()} DATA</div>", unsafe_allow_html=True)
+
+    if platform == "Twitter / X":
+        with st.expander("⚡ Use Grok (Best Method)", expanded=False):
+            st.markdown("""
+**Grok has real-time access to X/Twitter data!**
+
+**Step 1** — Go to [grok.com](https://grok.com) or use Grok inside the X app
+
+**Step 2** — Paste this prompt:
+```
+Fetch 30 recent tweets from @username.
+Format strictly as a raw CSV inside a single
+code block. Use columns:
+Date,Tweet,Likes,Retweets,Replies,Views,
+Username,Hashtags,Category.
+Enclose Tweet text in double quotes.
+No other text.
+```
+
+**Step 3** — Copy the CSV output
+
+**Step 4** — Select **"Paste Raw CSV (Grok)"** in
+Data Source above and paste it in! 🚀
+
+> ✅ **Why Grok?** It has direct access to real-time
+> X/Twitter data, so numbers are accurate and up-to-date.
+            """)
+
+        with st.expander("📥 Download X Archive (Your Account)", expanded=False):
+            st.markdown("""
+**To export your own X/Twitter data:**
+
+**Step 1** — Go to [x.com](https://x.com) → Click **More** (left sidebar)
+
+**Step 2** — Click **Settings and Support** → **Settings and Privacy**
+
+**Step 3** — Click **Your Account** → **Download an archive of your data**
+
+**Step 4** — Verify your identity (password + 2FA)
+
+**Step 5** — Click **Request Archive**
+
+**Step 6** — X will email you when ready (usually **24–48 hours**)
+
+**Step 7** — Download the `.zip`, extract it, and find your tweets in the `data/` folder
+
+> 💡 **Tip:** The archive is in JSON format. Paste the
+> tweet data into ChatGPT and ask:
+> *"Convert this to CSV with columns: Date, Tweet,
+> Likes, Retweets, Replies, Views, Username"*
+            """)
+
+        with st.expander("📊 X Analytics Dashboard", expanded=False):
+            st.markdown("""
+**For content creators & business accounts:**
+
+**Step 1** — Go to [analytics.x.com](https://analytics.x.com)
+
+**Step 2** — Sign in with your X account
+
+**Step 3** — Navigate to **Tweets** tab
+
+**Step 4** — Set the date range you want to analyze
+
+**Step 5** — Click **Export data** (top-right button)
+
+**Step 6** — You'll get a `.csv` file — upload it directly! ✨
+
+> 🎯 This gives you the **most accurate** engagement
+> data since it comes directly from X's own analytics.
+> Works best for **your own account**.
+            """)
+
+        with st.expander("🤖 Use ChatGPT / Gemini", expanded=False):
+            st.markdown("""
+**Alternative if you don't have Grok:**
+
+Paste this into ChatGPT or Gemini:
+```
+Give me 20 sample tweets about [your topic].
+Format as CSV with columns:
+Date,Tweet,Likes,Retweets,Replies,Views,
+Username,Hashtags,Category.
+Use realistic engagement numbers.
+Wrap Tweet in double quotes. Only output CSV.
+```
+
+> ⚠️ Note: ChatGPT/Gemini **don't have real-time**
+> X access, so numbers will be simulated/estimated.
+> For real data, use **Grok** or **X Analytics**.
+            """)
+
+    elif platform == "Instagram":
+        with st.expander("📱 Export from Instagram App", expanded=False):
+            st.markdown("""
+**Step 1** — Open the **Instagram app** on your phone
+
+**Step 2** — Go to your **Profile** → tap the **☰ Menu** (top-right)
+
+**Step 3** — Tap **⚙️ Settings and Privacy**
+
+**Step 4** — Scroll down to **Your Activity** section → tap **Download Your Information**
+
+**Step 5** — Tap **Request a Download**
+- Select **Some of your information**
+- Check ✅ **Posts** and ✅ **Content interactions**
+- Choose format: **JSON** (or HTML)
+- Choose date range and tap **Submit Request**
+
+**Step 6** — Wait for Instagram to email you (usually **5 min – 48 hours**)
+
+**Step 7** — Download the `.zip` file from the email, extract it, and find your posts data inside
+
+> 💡 **Tip:** Convert the JSON to CSV by pasting it into
+> ChatGPT/Grok and asking:
+> *"Convert to CSV with columns: Date, Caption, Likes,
+> Comments, Shares, Saves, Reach, Username"*
+            """)
+
+        with st.expander("🌐 Export from Instagram Web", expanded=False):
+            st.markdown("""
+**Step 1** — Go to [instagram.com](https://instagram.com) on your browser
+
+**Step 2** — Click your **Profile picture** (bottom-left) → **Settings**
+
+**Step 3** — Click **See more in Accounts Center** → **Your information and permissions**
+
+**Step 4** — Click **Download your information** → **Request a download**
+
+**Step 5** — Select your **Instagram account** → Choose **Some of your information**
+- Check ✅ **Posts** and ✅ **Content interactions**
+
+**Step 6** — Choose **Format: JSON** → **Date Range: All time** → **Submit Request**
+
+**Step 7** — You'll receive an email with a download link within minutes to 48 hours
+            """)
+
+        with st.expander("📊 Instagram Insights (Business/Creator)", expanded=False):
+            st.markdown("""
+**For Business or Creator accounts only:**
+
+**Step 1** — Open Instagram → Go to your **Profile**
+
+**Step 2** — Tap **Professional Dashboard** (or **Insights**)
+
+**Step 3** — Browse through **Content**, **Activity**, and **Audience** tabs
+
+**Step 4** — Note down metrics for each post manually, or take screenshots
+
+**Step 5** — Enter the data into a spreadsheet with columns:
+`Date, Caption, Likes, Comments, Shares, Saves, Reach, Username`
+
+**Step 6** — Save as `.csv` and upload it here! 📤
+
+> 💡 **Pro Tip:** Instagram Insights only shows data for
+> the **last 90 days**. Export regularly to build history.
+            """)
+
+        with st.expander("⚡ Quick Alternative (Recommended)", expanded=False):
+            st.markdown("""
+**Fastest method — Use ChatGPT or Grok:**
+
+Paste this prompt:
+```
+Look up the Instagram account @username.
+Give me their last 20 posts as a CSV with
+columns: Date, Caption, Likes, Comments,
+Shares, Saves, Reach, Username, Hashtags,
+Category.
+Wrap Caption in double quotes. Only output CSV.
+```
+
+Then **copy the CSV** and paste it in the
+**"Paste Raw CSV"** section above! 🚀
+
+> ⚠️ Note: AI tools give estimated/approximate
+> numbers since Instagram data isn't fully public.
+> For exact data, use the official export methods.
+            """)
+
 
 # ══════════════════════════════════════════════════════════════════════════
 # DATA PIPELINE — Load → Analyze → Enrich
