@@ -85,30 +85,11 @@ def render(df, platform="Twitter / X"):
 
     # ── Automated EDA Report ──────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
-    render_section_header("🤖", "Automated EDA Report (ydata-profiling)")
+    render_section_header("🤖", "Statistical Summary")
     st.markdown("""
-    Generate an incredibly detailed Exploratory Data Analysis (EDA) report.
-    This creates an interactive HTML widget analyzing correlations, missing values, and data distributions.
+    A quick overview of the numeric distribution and core statistics of your filtered dataset.
     """)
-    if st.button("Generate Detailed Statistical Report"):
-        with st.spinner("Generating complex statistical report... (This might take a minute)"):
-            try:
-                from ydata_profiling import ProfileReport
-                from streamlit_pandas_profiling import st_profile_report
-                
-                profile = ProfileReport(filtered, title="SocialPulse AI - Automated Dataset Report", explorative=True, minimal=True)
-                
-                # Provide a download button for the HTML
-                html_data = profile.to_html()
-                st.download_button(
-                    label="⬇️ Download Full HTML Report File",
-                    data=html_data,
-                    file_name="socialpulse_detailed_report.html",
-                    mime="text/html"
-                )
-                
-                # Render inside streamlit
-                st_profile_report(profile)
-                
-            except Exception as e:
-                st.error(f"Failed to generate report: {e}")
+    if st.button("Generate Statistical Summary"):
+        with st.spinner("Calculating statistics..."):
+            stats_df = filtered.describe().T
+            st.dataframe(stats_df, width="stretch")

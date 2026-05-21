@@ -5,5 +5,3 @@ plotly
 textblob
 scikit-learn
 statsmodels
-ydata-profiling
-streamlit-pandas-profiling
