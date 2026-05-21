@@ -13,7 +13,4 @@ showSidebarNavigation = true
 [logger]
 level = "error"
 
-[server]
-headless = false
-port = 8501
-maxUploadSize = 200
+
