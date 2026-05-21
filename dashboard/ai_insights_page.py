@@ -2,19 +2,94 @@
 Dashboard page: AI Recommendations & Insights.
 """
 import streamlit as st
-from dashboard.components import render_section_header, render_recommendation_card, render_info_panel
+from dashboard.components import render_section_header, render_recommendation_card, render_info_panel, render_metric_card
 from utils.recommendations import generate_recommendations, get_hashtag_recommendations
 from utils.platform_config import get_platform_config
 from utils.charts import bar_chart
 import pandas as pd
-
+from utils.analytics import grade_draft_hook, discover_semantic_whitespace, extract_golden_phrases
 
 def render(df, sentiment_dist, platform="Twitter / X"):
     cfg = get_platform_config(platform)
+    post_label = cfg["post_label"].lower()
 
     render_section_header("🤖", "AI Recommendation Engine")
     st.caption(f"Data-driven recommendations to optimize your {platform} strategy.")
 
+    # ── Viral Hook Grader (Predictive Draft Analyzer) ───────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_section_header("✍️", "Viral Hook Grader (Predictive A/B Testing)")
+    st.markdown(f"Draft your next {post_label} and our AI will predict its engagement score and provide structural feedback based on your historical viral hits.")
+    
+    draft_text = st.text_area(f"Draft your next {post_label} here:", height=120, placeholder="e.g. Just launched my new Python course! 🚀 #coding")
+    
+    if st.button("Predict Virality"):
+        if draft_text.strip():
+            with st.spinner("Analyzing structural linguistics..."):
+                result = grade_draft_hook(draft_text, df)
+                
+                c1, c2 = st.columns([1, 2])
+                with c1:
+                    render_metric_card("🎯", f"{result['score']}/100", "Predicted Virality Score")
+                    render_metric_card("📈", f"{result['prediction']:,.0f}", "Projected Engagement")
+                with c2:
+                    st.markdown("#### AI Feedback")
+                    for fb in result["feedback"]:
+                        st.markdown(fb)
+        else:
+            st.warning("Please enter some text to analyze.")
+
+    # ── Semantic Gap Discovery ───────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_section_header("🌌", "Content Whitespace Discovery")
+    st.markdown("Topics your audience highly engages with, but you rarely post about.")
+    
+    with st.spinner("Calculating semantic gaps..."):
+        gaps = discover_semantic_whitespace(df)
+        
+    if gaps:
+        for g in gaps:
+            kw_str = ", ".join(g["keywords"])
+            st.markdown(f"""
+            <div style="padding:15px;border-left:4px solid #FCD535;background:rgba(252,213,53,0.05);margin-bottom:10px;">
+                <h4 style="margin:0;color:#FCD535;">Topic: {kw_str}</h4>
+                <p style="margin:5px 0 0 0;font-size:0.9rem;">
+                    <strong>Engagement:</strong> {g['avg_engagement']:,.0f} (High) &nbsp;|&nbsp; 
+                    <strong>Post Frequency:</strong> {g['frequency']} (Low)
+                </p>
+                <p style="margin:5px 0 0 0;font-style:italic;color:#848E9C;">
+                    Action: You've barely posted about this, but it performs incredibly well. Write a post about this today!
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("No clear semantic gaps found. Try analyzing a larger dataset.")
+
+    # ── Golden Phrase Extraction ──────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_section_header("🗝️", "Viral 'Golden Phrases'")
+    st.markdown("Exact 2-to-3 word phrases that appear strictly in your top 20% most viral posts.")
+    
+    with st.spinner("Extracting n-grams..."):
+        phrases = extract_golden_phrases(df)
+        
+    if phrases:
+        p_cols = st.columns(len(phrases))
+        for i, (phrase, count) in enumerate(phrases):
+            with p_cols[i % len(p_cols)]:
+                st.markdown(f"""
+                <div style="text-align:center;padding:10px;border-radius:8px;background:#1E2329;border:1px solid #2B3139;margin-bottom:10px;">
+                    <div style="font-size:1.1rem;font-weight:700;color:#EAECEF;">"{phrase}"</div>
+                    <div style="font-size:0.8rem;color:#848E9C;">Used {count} times in viral hits</div>
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("Not enough data to extract significant golden phrases.")
+
+
+    # ── Basic Recommendations (Legacy) ───────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_section_header("📜", "Basic Tactical Advice")
     recs = generate_recommendations(df, sentiment_dist, platform=platform)
 
     # Split by priority

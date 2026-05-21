@@ -459,14 +459,6 @@ textarea::placeholder {
     overflow: hidden !important;
 }
 
-.dvn-scroller {
-    background: var(--card) !important;
-}
-
-[data-testid="glideDataEditor"] {
-    background: var(--card) !important;
-}
-
 /* ══ EXPANDER ══ */
 details {
     background: var(--card) !important;

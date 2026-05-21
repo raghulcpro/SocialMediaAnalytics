@@ -149,3 +149,99 @@ def gauge_chart(value, title="", max_val=100):
         )
     ))
     return _apply_layout(fig, height=300)
+
+
+def correlation_heatmap(corr_df, title=""):
+    """Annotated correlation matrix heatmap with diverging color scale."""
+    labels = corr_df.columns.tolist()
+    z = corr_df.values
+
+    # Build annotation text
+    annotations = []
+    for i, row in enumerate(z):
+        for j, val in enumerate(row):
+            annotations.append(dict(
+                x=labels[j], y=labels[i],
+                text=f"{val:.2f}",
+                font=dict(
+                    size=11,
+                    color="white" if abs(val) > 0.5 else COLORS["text_dim"],
+                ),
+                showarrow=False,
+            ))
+
+    fig = go.Figure(go.Heatmap(
+        z=z, x=labels, y=labels,
+        colorscale=[
+            [0.0, COLORS["red"]],
+            [0.5, COLORS["bg"]],
+            [1.0, COLORS["green"]],
+        ],
+        zmin=-1, zmax=1,
+        hoverongaps=False,
+        hovertemplate="%{y} × %{x}<br>Correlation: %{z:.3f}<extra></extra>",
+        colorbar=dict(
+            title="r",
+            tickvals=[-1, -0.5, 0, 0.5, 1],
+            tickfont=dict(color=COLORS["text_dim"]),
+        ),
+    ))
+    fig.update_layout(annotations=annotations)
+    return _apply_layout(fig, title, height=520)
+
+
+def feature_importance_chart(features, importances, title=""):
+    """Horizontal bar chart for ML feature importance rankings."""
+    # Reverse so highest is on top
+    features_rev = features[::-1]
+    importances_rev = importances[::-1]
+
+    colors = [COLORS["yellow"] if v == max(importances) else COLORS["border"]
+              for v in importances_rev]
+
+    fig = go.Figure(go.Bar(
+        x=importances_rev, y=features_rev,
+        orientation="h",
+        marker_color=colors,
+        text=[f"{v:.1f}%" for v in importances_rev],
+        textposition="outside",
+        textfont=dict(color=COLORS["text"], size=12),
+        hovertemplate="%{y}<br>Importance: %{x:.1f}%<extra></extra>",
+    ))
+    fig.update_layout(
+        xaxis_title="Importance (%)",
+        yaxis=dict(automargin=True),
+    )
+    return _apply_layout(fig, title, height=max(350, len(features) * 38))
+
+
+def forecast_chart(history_df, forecast_df, title=""):
+    """Line chart showing historical data and future forecast."""
+    fig = go.Figure()
+    
+    # Historical data
+    fig.add_trace(go.Scatter(
+        x=history_df["Date"], y=history_df["EngagementScore"],
+        mode="lines+markers", name="Historical",
+        line=dict(color=COLORS["yellow"], width=2.5),
+        hovertemplate="Date: %{x}<br>Engagement: %{y:,.0f}<extra></extra>"
+    ))
+    
+    # Forecast data
+    if not forecast_df.empty:
+        # Connect last historical point to first forecast point
+        last_hist_x = history_df["Date"].iloc[-1]
+        last_hist_y = history_df["EngagementScore"].iloc[-1]
+        
+        fx = [last_hist_x] + forecast_df["Date"].tolist()
+        fy = [last_hist_y] + forecast_df["Forecast"].tolist()
+        
+        fig.add_trace(go.Scatter(
+            x=fx, y=fy,
+            mode="lines+markers", name="AI Forecast",
+            line=dict(color=COLORS["cyan"], width=2.5, dash="dash"),
+            marker=dict(symbol="star", size=8),
+            hovertemplate="Date: %{x}<br>Forecast: %{y:,.0f}<extra></extra>"
+        ))
+        
+    return _apply_layout(fig, title)

@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from dashboard.components import render_section_header, render_metric_card
 from utils.charts import scatter_chart, bar_chart, heatmap_chart, gauge_chart
+from utils.analytics import get_posting_time_analysis
 from utils.platform_config import get_platform_config
 
 
@@ -88,6 +89,41 @@ def render(df, platform="Twitter / X"):
 
         fig = heatmap_chart(heat_data, [f"W{w}" for w in weeks], avail_days, "Weekly Engagement Heatmap")
         st.plotly_chart(fig, width="stretch")
+
+    # ── Best Posting Time Analysis ────────────────────────────────────
+    if "Date" in df.columns:
+        render_section_header("⏰", "Best Posting Time")
+        time_data = get_posting_time_analysis(df)
+        if time_data and "daily_data" in time_data:
+            daily = time_data["daily_data"]
+            best_day = time_data["best_day"]
+
+            col_t1, col_t2 = st.columns([1, 3])
+            with col_t1:
+                render_metric_card("📅", best_day, "Best Day to Post", "+highest avg", "up")
+                best_row = daily[daily["DayOfWeek"] == best_day].iloc[0]
+                render_metric_card("📈", f"{best_row['avg_engagement']:,.0f}", "Avg Engagement", f"{int(best_row['total_posts'])} posts", "neutral")
+            with col_t2:
+                # Color bars: highlight the best day in yellow, rest in default
+                colors = ["#FCD535" if d == best_day else "#2B3139" for d in daily["DayOfWeek"]]
+                import plotly.graph_objects as go
+                fig_time = go.Figure(go.Bar(
+                    x=daily["DayOfWeek"], y=daily["avg_engagement"],
+                    marker_color=colors,
+                    text=daily["avg_engagement"].round(0).astype(int),
+                    textposition="outside",
+                    textfont=dict(color="#EAECEF", size=12),
+                    hovertemplate="%{x}<br>Avg Engagement: %{y:,.0f}<br>Posts: %{customdata}<extra></extra>",
+                    customdata=daily["total_posts"],
+                ))
+                fig_time.update_layout(
+                    title=dict(text="Average Engagement by Day of Week", font=dict(size=18, color="#FCD535")),
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(family="Inter, sans-serif", color="#EAECEF", size=13),
+                    margin=dict(l=40, r=40, t=60, b=40), height=380,
+                    xaxis=dict(gridcolor="#2B3139"), yaxis=dict(gridcolor="#2B3139"),
+                )
+                st.plotly_chart(fig_time, use_container_width=True)
 
     # ── Fake Engagement Detection ────────────────────────────────────
     if "FakeScore" in df.columns:

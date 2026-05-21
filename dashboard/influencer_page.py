@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 from dashboard.components import render_section_header, render_metric_card, render_score_badge
 from utils.analytics import compute_influencer_score, detect_trends
-from utils.charts import radar_chart, bar_chart, line_chart
+from utils.charts import radar_chart, bar_chart, line_chart, comparison_bar
 
 
 def render(df):
@@ -58,10 +58,20 @@ def render(df):
 
         if s1["breakdown"] and s2["breakdown"]:
             cats = list(s1["breakdown"].keys())
+            v1 = [s1["breakdown"][c] for c in cats]
+            v2 = [s2["breakdown"][c] for c in cats]
+
+            # Visual comparison bar chart
+            fig = comparison_bar(cats, v1, v2, name1=u1, name2=u2,
+                                 title=f"Profile Comparison: {u1} vs {u2}")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Detailed breakdown table
             cmp_df = pd.DataFrame({
                 "Metric": cats,
-                u1: [s1["breakdown"][c] for c in cats],
-                u2: [s2["breakdown"][c] for c in cats],
+                u1: v1,
+                u2: v2,
+                "Difference": [round(a - b, 1) for a, b in zip(v1, v2)],
             })
             st.dataframe(cmp_df, width="stretch")
 

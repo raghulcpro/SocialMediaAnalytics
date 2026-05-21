@@ -47,19 +47,15 @@ def load_dataset(uploaded_file=None, raw_csv_text=None, platform=None) -> pd.Dat
 
 
 def _normalize_columns(df: pd.DataFrame, platform: str) -> pd.DataFrame:
-    """Rename platform-native columns to internal standard names.
-
-    e.g. Instagram 'Caption' → 'Tweet', 'Comments' → 'Replies', etc.
-    This lets the entire analytics pipeline work with a single set of column names.
-    """
+    """Rename platform-native columns and fuzzy-match to internal standard names."""
     cfg = get_platform_config(platform)
     col_map = cfg.get("column_map", {})
 
-    # Build a rename dict for columns that exist in the dataframe
     rename = {}
+    
+    # 1. Strict mapping from config
     for native_name, standard_name in col_map.items():
         if native_name != standard_name:
-            # Case-insensitive match
             for c in df.columns:
                 if c.lower() == native_name.lower() and c != standard_name:
                     rename[c] = standard_name
@@ -67,6 +63,34 @@ def _normalize_columns(df: pd.DataFrame, platform: str) -> pd.DataFrame:
 
     if rename:
         df = df.rename(columns=rename)
+        
+    # 2. Fuzzy/Synonym mapping for common messy uploads
+    synonyms = {
+        "Tweet": ["text", "content", "post", "body", "caption", "full_text", "message"],
+        "Likes": ["favs", "favorites", "heart", "like", "favorite_count", "like_count"],
+        "Retweets": ["rt", "shares", "repost", "reposts", "retweet_count", "share_count"],
+        "Replies": ["comments", "responses", "reply_count", "comment_count"],
+        "Views": ["impressions", "reach", "view_count", "impression_count", "reads"],
+        "Date": ["timestamp", "time", "created_at", "date_published", "published"],
+        "Category": ["topic", "niche", "subject", "tag"],
+        "Hashtags": ["tags", "hash"]
+    }
+    
+    rename_fuzzy = {}
+    existing_cols = [c.lower() for c in df.columns]
+    
+    for standard_col, syn_list in synonyms.items():
+        if standard_col.lower() not in existing_cols:
+            # We are missing a standard column, try to find a synonym
+            for c in df.columns:
+                if c.lower() in syn_list and c not in rename_fuzzy:
+                    rename_fuzzy[c] = standard_col
+                    existing_cols.append(standard_col.lower()) # prevent double mapping
+                    break
+                    
+    if rename_fuzzy:
+        df = df.rename(columns=rename_fuzzy)
+
     return df
 
 

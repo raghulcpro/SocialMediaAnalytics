@@ -82,3 +82,33 @@ def render(df, platform="Twitter / X"):
         # JSON export
         json_data = filtered.to_json(orient="records", indent=2)
         st.download_button("📋 Download JSON Report", json_data, "socialpulse_report.json", "application/json")
+
+    # ── Automated EDA Report ──────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_section_header("🤖", "Automated EDA Report (ydata-profiling)")
+    st.markdown("""
+    Generate an incredibly detailed Exploratory Data Analysis (EDA) report.
+    This creates an interactive HTML widget analyzing correlations, missing values, and data distributions.
+    """)
+    if st.button("Generate Detailed Statistical Report"):
+        with st.spinner("Generating complex statistical report... (This might take a minute)"):
+            try:
+                from ydata_profiling import ProfileReport
+                from streamlit_pandas_profiling import st_profile_report
+                
+                profile = ProfileReport(filtered, title="SocialPulse AI - Automated Dataset Report", explorative=True, minimal=True)
+                
+                # Provide a download button for the HTML
+                html_data = profile.to_html()
+                st.download_button(
+                    label="⬇️ Download Full HTML Report File",
+                    data=html_data,
+                    file_name="socialpulse_detailed_report.html",
+                    mime="text/html"
+                )
+                
+                # Render inside streamlit
+                st_profile_report(profile)
+                
+            except Exception as e:
+                st.error(f"Failed to generate report: {e}")
